@@ -1,4 +1,3 @@
-```yaml
 name: Setup Project Structure
 on:
   workflow_dispatch:
