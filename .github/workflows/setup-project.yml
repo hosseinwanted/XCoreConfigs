@@ -1,0 +1,39 @@
+```yaml
+name: Setup Project Structure
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create project structure
+        run: |
+          mkdir -p .github/workflows src public subscriptions
+          touch .github/workflows/update.yml
+          touch src/main.py
+          touch public/index.html
+          touch settings.json
+          touch requirements.txt
+          touch README.md
+          touch .gitignore
+      - name: Add content to files
+        run: |
+          echo "requests==2.28.1" > requirements.txt
+          echo -e "# My V2ray Configs\nA project to provide free V2ray configurations, updated every 15 minutes." > README.md
+          echo -e "{\n  \"sources\": [],\n  \"output_dir\": \"subscriptions\"\n}" > settings.json
+          echo -e "<!DOCTYPE html>\n<html lang='en'>\n<head>\n<meta charset='UTF-8'>\n<title>V2ray Configs</title>\n</head>\n<body>\n<h1>Welcome to My V2ray Configs</h1>\n<p>Configs updated every 15 minutes!</p>\n</body>\n</html>" > public/index.html
+          echo -e "# main.py\nimport json\nimport os\n\ndef load_settings():\n    with open('../settings.json', 'r') as f:\n        return json.load(f)\n\nif __name__ == '__main__':\n    settings = load_settings()\n    print('V2ray config update script running...')" > src/main.py
+          echo -e "name: Update V2ray Configs\non:\n  schedule:\n    - cron: '*/15 * * * *'\n  workflow_dispatch:\njobs:\n  update:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v3\n        with:\n          token: ${{ secrets.GITHUB_TOKEN }}\n      - name: Set up Python\n        uses: actions/setup-python@v4\n        with:\n          python-version: '3.x'\n      - name: Install dependencies\n        run: pip install -r requirements.txt\n      - name: Run script\n        run: python src/main.py\n      - name: Commit changes\n        run: |\n          git config user.name 'GitHub Action'\n          git config user.email 'action@github.com'\n          git add .\n          git commit -m 'Update V2ray configs' || true\n          git push" > .github/workflows/update.yml
+          echo -e "__pycache__/\n*.pyc\n*.pyo\n*.pyd\n.DS_Store\n*.log\nsubscriptions/*" > .gitignore
+      - name: Commit changes
+        run: |
+          git config user.name 'GitHub Action'
+          git config user.email 'action@github.com'
+          git add .
+          git commit -m 'Setup initial project structure and files' || true
+          git push
